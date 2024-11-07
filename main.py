@@ -16,7 +16,9 @@ class Tarea(BaseModel):
 
 class TareaEliminar(BaseModel):
     id: int
-
+class TareaCompletar(BaseModel):
+    id: int
+    completado: bool
 
 
 @app.get("/obtenerDatos")
@@ -45,10 +47,10 @@ async def agregarTarea(tarea: Tarea):
         user=DB_USER,
         password=DB_PASSWORD
     )
-        
+
         cur = conn.cursor()
         cur.execute(
-              "INSERT INTO tareas(nombre_tarea, completado) VALUES (%s, %s)", 
+              "INSERT INTO tareas(nombre_tarea, completado) VALUES (%s, %s)",
               (tarea.nombre_tarea, tarea.completado)
         )
 
@@ -67,21 +69,51 @@ async def eliminarTarea(tarea: TareaEliminar):
             user=DB_USER,
             password=DB_PASSWORD
         )
-        
+
         cur = conn.cursor()
 
         # Ejecutar el DELETE con el ID proporcionado
         cur.execute("DELETE FROM tareas WHERE id = %s", (tarea.id,))
-        
+
         # Verificar si alguna fila fue afectada
         if cur.rowcount == 0:
             raise HTTPException(status_code=404, detail="Tarea no encontrada")
-        
+
         conn.commit()
         cur.close()
         conn.close()
 
         return {"message": "Tarea eliminada exitosamente"}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+@app.post("/completarTarea")
+async def completarTarea(tarea: TareaCompletar):
+    try:
+        conn = psycopg2.connect(
+            host=DB_HOST,
+            database=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD
+        )
+
+        cur = conn.cursor()
+
+        # Ejecutar la consulta UPDATE para cambiar el estado de 'completado'
+        cur.execute("UPDATE tareas SET completado = %s WHERE id = %s",
+                    (tarea.completado, tarea.id))
+
+        # Verificar si alguna fila fue afectada
+        if cur.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Tarea no encontrada")
+
+        conn.commit()
+        conn.commit()
+        cur.close()
+        cur.close()
+        conn.close()
+
+        return {"message": "Tarea actualizada exitosamente"}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
