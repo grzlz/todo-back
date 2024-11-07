@@ -21,6 +21,68 @@ class TareaCompletar(BaseModel):
     completado: bool
 
 
+class UsuarioVerificar(BaseModel):
+    correo_elecronico: str
+
+class UsuarioRegistrar(BaseModel):
+    nombre: str
+    apellido: str
+    correo_electronico: str
+    contraseña: str  # La contraseña ya llegará en hash desde el servidor intermedio
+
+@app.post("/verificarUsuario")
+async def verificar_usuario(usuario: UsuarioVerificar):
+    try:
+        conn = psycopg2.connect(
+            host=DB_HOST,
+            database=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD
+        )
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        # Verificar si el email ya existen en la base de datos
+        cur.execute("SELECT correo_electronico FROM usuarios WHERE correo_electronico = %s", (usuario.correo_electronico))
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        # Determinar si el email ya están en uso
+        email_exists = any(row['correo_electronico'] == usuario.correo_electronico for row in rows)
+
+        return {"emailExists": email_exists}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/registrarUsuario")
+async def registrar_usuario(usuario: UsuarioRegistrar):
+    try:
+        conn = psycopg2.connect(
+            host=DB_HOST,
+            database=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD
+        )
+        cur = conn.cursor()
+
+        # Insertar el nuevo usuario en la base de datos
+        cur.execute(
+            "INSERT INTO usuarios (nombre, apellido, correo_electronico, contraseña) VALUES (%s, %s, %s, %s)",
+            (usuario.nombre, usuario.apellido, usuario.correo_electronico, usuario.contraseña)
+        )
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return {"message": "Usuario registrado exitosamente"}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/obtenerDatos")
 async def obtenerDatos():
     conn = psycopg2.connect(
