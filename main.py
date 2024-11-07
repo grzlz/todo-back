@@ -28,7 +28,7 @@ class UsuarioRegistrar(BaseModel):
     nombre: str
     apellido: str
     correo_electronico: str
-    contraseña: str  # La contraseña ya llegará en hash desde el servidor intermedio
+    password: str  # La contraseña ya llegará en hash desde el servidor intermedio
 
 @app.post("/verificarUsuario")
 async def verificar_usuario(usuario: UsuarioVerificar):
@@ -69,8 +69,8 @@ async def registrar_usuario(usuario: UsuarioRegistrar):
 
         # Insertar el nuevo usuario en la base de datos
         cur.execute(
-            "INSERT INTO usuarios (nombre, apellido, correo_electronico, contraseña) VALUES (%s, %s, %s, %s)",
-            (usuario.nombre, usuario.apellido, usuario.correo_electronico, usuario.contraseña)
+            "INSERT INTO usuarios (nombre, apellido, correo_electronico, password) VALUES (%s, %s, %s, %s)",
+            (usuario.nombre, usuario.apellido, usuario.correo_electronico, usuario.password)
         )
 
         conn.commit()
