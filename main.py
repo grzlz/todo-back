@@ -22,12 +22,12 @@ class TareaCompletar(BaseModel):
 
 
 class UsuarioVerificar(BaseModel):
-    correo_elecronico: str
+    correo: str
 
 class UsuarioRegistrar(BaseModel):
     nombre: str
     apellido: str
-    correo_electronico: str
+    correo: str
     password: str  # La contraseña ya llegará en hash desde el servidor intermedio
 
 @app.post("/verificarUsuario")
@@ -42,13 +42,13 @@ async def verificar_usuario(usuario: UsuarioVerificar):
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
         # Verificar si el email ya existen en la base de datos
-        cur.execute("SELECT correo_electronico FROM usuarios WHERE correo_electronico = %s", (usuario.correo_electronico))
+        cur.execute("SELECT correo FROM usuarios WHERE correo = %s", (usuario.correo))
         rows = cur.fetchall()
         cur.close()
         conn.close()
 
         # Determinar si el email ya están en uso
-        email_exists = any(row['correo_electronico'] == usuario.correo_electronico for row in rows)
+        email_exists = any(row['correo'] == usuario.correo for row in rows)
 
         return {"emailExists": email_exists}
 
@@ -69,8 +69,8 @@ async def registrar_usuario(usuario: UsuarioRegistrar):
 
         # Insertar el nuevo usuario en la base de datos
         cur.execute(
-            "INSERT INTO usuarios (nombre, apellido, correo_electronico, password) VALUES (%s, %s, %s, %s)",
-            (usuario.nombre, usuario.apellido, usuario.correo_electronico, usuario.password)
+            "INSERT INTO usuarios (nombre, apellido, correo, password) VALUES (%s, %s, %s, %s)",
+            (usuario.nombre, usuario.apellido, usuario.correo, usuario.password)
         )
 
         conn.commit()
