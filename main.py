@@ -42,7 +42,7 @@ async def verificar_usuario(usuario: UsuarioVerificar):
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
         # Verificar si el email ya existen en la base de datos
-        cur.execute("SELECT correo FROM usuarios WHERE correo = %s", (usuario.correo))
+        cur.execute("SELECT correo FROM usuarios WHERE correo = %s", (usuario.correo,))
         rows = cur.fetchall()
         cur.close()
         conn.close()
