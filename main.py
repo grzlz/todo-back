@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from psycopg2.extras import RealDictCursor
 import psycopg2
 from pydantic import BaseModel
+import bcrypt
 
 app = FastAPI()
 
@@ -66,6 +67,8 @@ async def registrar_usuario(usuario: UsuarioRegistrar):
             password=DB_PASSWORD
         )
         cur = conn.cursor()
+        
+        hashed_password = bcrypt.hashpw(usuario.password.encode('utf-8'), bcrypt.gensalt())
 
         # Insertar el nuevo usuario en la base de datos
         cur.execute(
