@@ -68,12 +68,13 @@ async def registrar_usuario(usuario: UsuarioRegistrar):
         )
         cur = conn.cursor()
         
-        hashed_password = bcrypt.hashpw(usuario.password.encode('utf-8'), bcrypt.gensalt())
-
+        print(usuario.password)
+        hashed_password = bcrypt.hashpw(usuario.password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        
         # Insertar el nuevo usuario en la base de datos
         cur.execute(
             "INSERT INTO usuarios (nombre, apellido, correo, password) VALUES (%s, %s, %s, %s)",
-            (usuario.nombre, usuario.apellido, usuario.correo, usuario.password)
+            (usuario.nombre, usuario.apellido, usuario.correo, hashed_password)
         )
 
         conn.commit()
