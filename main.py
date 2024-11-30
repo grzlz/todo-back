@@ -57,7 +57,7 @@ async def autenticar_usuario(usuario: UsuarioAutenticar):
 
  
         stored_password = user['password']
-        if not bcrypt.checkpw(usuario.password.encode('utf-8'), stored_password.encode('utf-8')):
+        if not bcrypt.checkpw(usuario.password.encode('utf-8'), stored_password):
             raise HTTPException(status_code=401, detail="Correo o contraseña incorrectos")
 
        
