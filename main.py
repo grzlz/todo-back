@@ -29,7 +29,42 @@ class UsuarioRegistrar(BaseModel):
     nombre: str
     apellido: str
     correo: str
-    password: str  # La contraseña ya llegará en hash desde el servidor intermedio
+    password: str 
+
+class UsuarioAutenticar(BaseModel):
+    correo: str
+    password: str  
+
+@app.post("/autenticarUsuario")
+async def autenticar_usuario(usuario: UsuarioAutenticar):
+    try:
+        conn = psycopg2.connect(
+            host=DB_HOST,
+            database=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD
+        )
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        cur.execute("SELECT id, password FROM usuarios WHERE correo = %s", (usuario.correo,))
+        user = cur.fetchone()
+        cur.close()
+        conn.close()
+
+        if user is None:
+            
+            raise HTTPException(status_code=401, detail="Correo o contraseña incorrectos")
+
+ 
+        stored_password = user['password']
+        if not bcrypt.checkpw(usuario.password.encode('utf-8'), stored_password.encode('utf-8')):
+            raise HTTPException(status_code=401, detail="Correo o contraseña incorrectos")
+
+       
+        return {"message": "Autenticación exitosa", "userId": user['id']}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))  
 
 @app.post("/verificarUsuario")
 async def verificar_usuario(usuario: UsuarioVerificar):
